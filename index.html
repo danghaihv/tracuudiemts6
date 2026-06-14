@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tra cứu điểm thi</title>
+<style>
+  :root{
+    --ink:#1a2b3c;
+    --paper:#f7f5f0;
+    --line:#d8d3c4;
+    --accent:#b5482a;
+    --accent-soft:#f0e2da;
+    --ok:#2f6f4f;
+    --warn:#9c6b1f;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:32px 16px 80px;
+  }
+  .wrap{
+    width:100%;
+    max-width:560px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size:12px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:8px;
+  }
+  h1{
+    font-size:28px;
+    margin:0 0 6px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-size:14px;
+    color:#6b6557;
+    margin:0;
+  }
+  .search-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:24px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04);
+  }
+  label{
+    display:block;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:#8a8474;
+    margin-bottom:8px;
+  }
+  .input-row{
+    display:flex;
+    gap:8px;
+  }
+  input[type="text"]{
+    flex:1;
+    font-family:var(--mono);
+    font-size:16px;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:var(--paper);
+    color:var(--ink);
+    outline:none;
+  }
+  input[type="text"]:focus{
+    border-color:var(--accent);
+  }
+  button{
+    font-family: 'Georgia', serif;
+    font-size:15px;
+    font-weight:700;
+    padding:12px 22px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:#fff;
+    border-radius:3px;
+    cursor:pointer;
+    transition:background .15s ease, transform .05s ease;
+  }
+  button:hover{ background:#000; }
+  button:active{ transform: translateY(1px); }
+  button:disabled{
+    opacity:.5;
+    cursor:wait;
+  }
+  .hint{
+    margin-top:10px;
+    font-size:12.5px;
+    color:#9a9484;
+  }
+  .status{
+    margin-top:18px;
+    font-size:14px;
+    font-family:var(--mono);
+    text-align:center;
+    color:#8a8474;
+  }
+  .status.error{ color:var(--accent); }
+
+  .result{
+    margin-top:22px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:#fff;
+    overflow:hidden;
+    animation: rise .35s ease;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  .result-head{
+    padding:18px 22px;
+    border-bottom:1px solid var(--line);
+    background:var(--accent-soft);
+  }
+  .result-head .name{
+    font-size:20px;
+    font-weight:700;
+    margin:0 0 4px;
+  }
+  .result-head .id{
+    font-family:var(--mono);
+    font-size:12px;
+    color:#8a6a55;
+    letter-spacing:0.04em;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+  }
+  td{
+    padding:13px 22px;
+    font-size:15px;
+    border-bottom:1px solid var(--line);
+  }
+  tr:last-child td{ border-bottom:none; }
+  td.label{
+    color:#6b6557;
+    width:55%;
+  }
+  td.score{
+    font-family:var(--mono);
+    font-weight:700;
+    text-align:right;
+    font-size:17px;
+  }
+  tr.total td{
+    background:var(--accent-soft);
+    font-size:16px;
+  }
+  tr.total td.score{
+    color:var(--accent);
+    font-size:22px;
+  }
+
+  footer{
+    margin-top:40px;
+    text-align:center;
+    font-size:12px;
+    color:#aba585;
+    font-family:var(--mono);
+  }
+
+  @media (max-width:420px){
+    .input-row{ flex-direction:column; }
+    button{ width:100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Kết quả kỳ thi</div>
+    <h1>Tra cứu điểm thi</h1>
+    <p class="sub">Nhập mã định danh để xem điểm Toán, Tiếng Việt, Tiếng Anh và tổng điểm.</p>
+  </header>
+
+  <div class="search-card">
+    <label for="ma">Mã định danh</label>
+    <div class="input-row">
+      <input type="text" id="ma" placeholder="Ví dụ: 25315002742" autocomplete="off" inputmode="numeric" />
+      <button id="btnSearch">Tra cứu</button>
+    </div>
+    <p class="hint">Nhấn Enter hoặc bấm Tra cứu. Mã được nhập đúng theo số trên hồ sơ.</p>
+  </div>
+
+  <div id="status" class="status"></div>
+  <div id="result"></div>
+
+  <footer>Dữ liệu được đồng bộ trực tiếp từ Google Sheets</footer>
+</div>
+
+<script>
+  // === CẤU HÌNH ===
+  // Dữ liệu được lấy qua /api/scores (Vercel Serverless Function, có cache CDN)
+  // để hàng nghìn người truy cập cùng lúc không gọi trực tiếp Google Sheets.
+  const DATA_URL = "/api/scores";
+
+  const elInput = document.getElementById('ma');
+  const elBtn = document.getElementById('btnSearch');
+  const elStatus = document.getElementById('status');
+  const elResult = document.getElementById('result');
+
+  let DATA = null;       // Map: ma_dinh_danh (string) -> row object
+  let LOADING = null;    // promise
+
+  function setStatus(msg, isError){
+    elStatus.textContent = msg || '';
+    elStatus.className = 'status' + (isError ? ' error' : '');
+  }
+
+  function fmt(n){
+    if (n === null || n === undefined || n === '') return '—';
+    const num = Number(n);
+    if (Number.isNaN(num)) return String(n);
+    // bỏ số 0 thừa: 8.50 -> 8.5, 10.00 -> 10
+    return num % 1 === 0 ? num.toFixed(0) : String(num).replace(/0+$/,'').replace(/\.$/,'');
+  }
+
+  async function loadData(){
+    if (DATA) return DATA;
+    if (LOADING) return LOADING;
+
+    LOADING = (async () => {
+      setStatus('Đang tải dữ liệu…');
+      const res = await fetch(DATA_URL);
+      if (!res.ok) throw new Error('Không tải được dữ liệu (HTTP ' + res.status + ')');
+      const json = await res.json();
+
+      const map = new Map();
+      Object.keys(json).forEach(ma => {
+        const row = json[ma];
+        map.set(ma, {
+          ma,
+          ten: row.ten,
+          toan: row.toan,
+          tv: row.tv,
+          anh: row.anh,
+          tong: row.tong,
+        });
+      });
+
+      DATA = map;
+      setStatus('');
+      return map;
+    })();
+
+    try {
+      return await LOADING;
+    } catch (err) {
+      LOADING = null;
+      throw err;
+    }
+  }
+
+  function renderResult(row, maInput){
+    if (!row){
+      elResult.innerHTML = '';
+      setStatus('Không tìm thấy mã định danh "' + maInput + '". Vui lòng kiểm tra lại.', true);
+      return;
+    }
+    setStatus('');
+    elResult.innerHTML = `
+      <div class="result">
+        <div class="result-head">
+          <p class="name">${row.ten ?? ''}</p>
+          <div class="id">Mã định danh: ${row.ma}</div>
+        </div>
+        <table>
+          <tr><td class="label">Điểm Toán</td><td class="score">${fmt(row.toan)}</td></tr>
+          <tr><td class="label">Điểm Tiếng Việt</td><td class="score">${fmt(row.tv)}</td></tr>
+          <tr><td class="label">Điểm Tiếng Anh</td><td class="score">${fmt(row.anh)}</td></tr>
+          <tr class="total"><td class="label">Tổng điểm</td><td class="score">${fmt(row.tong)}</td></tr>
+        </table>
+      </div>
+    `;
+  }
+
+  async function doSearch(){
+    const ma = elInput.value.trim();
+    if (!ma){
+      setStatus('Vui lòng nhập mã định danh.', true);
+      return;
+    }
+    elBtn.disabled = true;
+    elResult.innerHTML = '';
+    try {
+      const map = await loadData();
+      const row = map.get(ma);
+      renderResult(row, ma);
+    } catch (err) {
+      console.error(err);
+      setStatus('Có lỗi khi tải dữ liệu. Vui lòng thử lại sau.', true);
+    } finally {
+      elBtn.disabled = false;
+    }
+  }
+
+  elBtn.addEventListener('click', doSearch);
+  elInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  // Tải sẵn dữ liệu ngay khi mở trang để tra cứu lần đầu được nhanh
+  loadData().catch(err => {
+    console.error(err);
+    setStatus('');
+  });
+</script>
+</body>
+</html>
